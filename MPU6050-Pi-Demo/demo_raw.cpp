@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include "I2Cdev.h"
@@ -21,14 +22,13 @@ void setup() {
     printf("Initializing I2C devices...\n");
     accelgyro.initialize();
     accelgyro2.initialize();
-
     // verify connection
     printf("Testing device connections...\n");
     printf(accelgyro.testConnection() ? "MPU6050 connection successful\n" : "MPU6050 connection failed\n");
     printf(accelgyro2.testConnection() ? "MPU6050-2 connection successful\n" : "MPU6050 connection failed\n");
 }
 
-void loop() {
+void loop(FILE *fptr1,FILE *fptr2) {
     // read raw accel/gyro measurements from device
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     accelgyro2.getMotion6(&axx,&ayy,&azz,&gxx,&gyy,&gzz);
@@ -40,11 +40,18 @@ void loop() {
     // display accel/gyro x/y/z values
      printf("a/g: %6hd %6hd %6hd   %6hd %6hd %6hd\n",ax,ay,az,gx,gy,gz);
      printf("a2/g2: %6hd %6hd %6hd   %6hd %6hd %6hd\n",axx,ayy,azz,gxx,gyy,gzz);
+     fprintf(fptr1,"a/g: %6hd %6hd %6hd   %6hd %6hd %6hd\n",ax,ay,az,gx,gy,gz);
+     fprintf(fptr2,"a2/g2: %6hd %6hd %6hd   %6hd %6hd %6hd\n",axx,ayy,azz,gxx,gyy,gzz);
 }
 
 int main()
 {
+    FILE *fptr1,*fptr2;
+    fptr1=fopen("g-sensor1.txt","w");
+    fptr2=fopen("g-sensor2.txt","w");
     setup();
     for (;;)
-        loop();
+        loop(fptr1,fptr2);
+    fclose(fptr1);
+    fclose(fptr2);
 }
